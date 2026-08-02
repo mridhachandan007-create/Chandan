@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stability Study Dashboard — Visral 50mg Tablet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg-deep:#052e22;
+    --bg-mid:#0b5c40;
+    --bg-light:#137a52;
+    --bg-glow:#1fae7c;
+    --card:#ffffff;
+    --card-soft:#f4faf7;
+    --ink:#0c2b21;
+    --muted:#5c716a;
+    --line:#e2ede8;
+
+    --blue:#2f6fed;
+    --blue-soft:#e8effe;
+    --amber:#f5a524;
+    --amber-soft:#fef3e0;
+    --purple:#8b5cf6;
+    --purple-soft:#f1ebfe;
+    --rose:#f4436c;
+    --rose-soft:#fde8ee;
+    --teal:#0aa88a;
+    --teal-soft:#e2f7f1;
+    --orange:#fb7c3c;
+    --orange-soft:#fef0e6;
+
+    --good:#12a454;
+    --good-soft:#e5f7ec;
+    --bad:#e0374a;
+    --bad-soft:#fde9eb;
+    --pending:#9aa5a0;
+    --pending-soft:#eef1f0;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 8% -10%, rgba(255,255,255,0.08), transparent 60%),
+      radial-gradient(1000px 700px at 100% 0%, rgba(31,174,124,0.35), transparent 55%),
+      linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 55%, var(--bg-light) 100%);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:1400px;margin:0 auto;padding:0 28px;}
+
+  /* ===== HEADER ===== */
+  header.topbar{
+    padding:28px 0 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    border-bottom:1px solid rgba(255,255,255,0.18);
+    margin-bottom:22px;
+  }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-mark{
+    width:52px;height:52px;border-radius:14px;
+    background:linear-gradient(135deg,var(--teal),var(--bg-light));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Poppins',sans-serif;font-weight:800;color:#fff;font-size:20px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.25);
+    flex-shrink:0;
+  }
+  .brand h1{
+    font-family:'Poppins',sans-serif;font-weight:700;font-size:22px;color:#fff;margin:0 0 2px;
+    letter-spacing:0.2px;
+  }
+  .brand p{margin:0;color:rgba(255,255,255,0.78);font-size:13px;font-weight:500;}
+  .meta-strip{display:flex;gap:22px;flex-wrap:wrap;}
+  .meta-item{color:rgba(255,255,255,0.92);}
+  .meta-item .k{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.6);font-weight:600;margin-bottom:2px;}
+  .meta-item .v{font-family:'Roboto Mono',monospace;font-size:13px;font-weight:700;color:#fff;}
+
+  /* ===== FILTER BAR ===== */
+  .filterbar{
+    background:rgba(255,255,255,0.97);
+    border-radius:16px;
+    padding:16px 20px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    box-shadow:0 10px 30px rgba(0,0,0,0.18);
+    margin-bottom:26px;
+    position:relative;
+    z-index:50;
+  }
+  .filter-group{display:flex;flex-direction:column;gap:6px;}
+  .filter-group label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);}
+  select.native-select{
+    appearance:none;
+    background:var(--card-soft) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%235c716a'/></svg>") no-repeat right 12px center;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:9px 34px 9px 12px;
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink);
+    min-width:190px;cursor:pointer;
+  }
+  .ms-btn{
+    background:var(--card-soft);border:1.5px solid var(--line);border-radius:10px;
+    padding:9px 14px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink);
+    cursor:pointer;min-width:190px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+  .ms-btn:after{content:'▾';color:var(--muted);font-size:11px;}
+  .ms-wrap{position:relative;}
+  .ms-panel{
+    display:none;position:absolute;top:calc(100% + 6px);left:0;
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.22);padding:10px;min-width:230px;max-height:280px;overflow-y:auto;z-index:100;
+  }
+  .ms-panel.open{display:block;}
+  .ms-row{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;}
+  .ms-row:hover{background:var(--card-soft);}
+  .ms-row input{accent-color:var(--teal);width:15px;height:15px;cursor:pointer;}
+  .ms-actions{display:flex;gap:8px;padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:6px;}
+  .ms-actions button{border:none;background:none;color:var(--blue);font-size:12px;font-weight:700;cursor:pointer;padding:4px 6px;}
+  .swatch{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+
+  .reset-btn{
+    margin-left:auto;
+    background:linear-gradient(135deg,var(--rose),#d81b53);
+    color:#fff;border:none;border-radius:10px;padding:11px 20px;
+    font-family:'Inter',sans-serif;font-weight:700;font-size:13px;cursor:pointer;
+    display:flex;align-items:center;gap:8px;
+    box-shadow:0 8px 18px rgba(244,67,108,0.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .reset-btn:hover{transform:translateY(-2px);box-shadow:0 12px 22px rgba(244,67,108,0.45);}
+  .reset-btn:active{transform:translateY(0);}
+
+  .result-count{color:var(--muted);font-size:12.5px;font-weight:600;margin-left:2px;}
+
+  /* ===== UPLOAD BAR ===== */
+  .uploadbar{
+    background:rgba(255,255,255,0.97);
+    border-radius:16px;
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.18);
+    margin-bottom:16px;
+  }
+  .upload-left{display:flex;align-items:center;gap:12px;min-width:0;}
+  .upload-icon{
+    width:38px;height:38px;border-radius:10px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--blue),#1d4fc4);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;
+  }
+  .upload-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:2px;}
+  .upload-status{font-size:13px;font-weight:600;color:var(--ink);white-space:normal;word-break:break-word;}
+  .upload-status b{color:var(--blue);}
+  .upload-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .upload-btn{
+    background:linear-gradient(135deg,var(--teal),var(--bg-light));
+    color:#fff;border:none;border-radius:10px;padding:10px 18px;
+    font-family:'Inter',sans-serif;font-weight:700;font-size:13px;cursor:pointer;
+    box-shadow:0 8px 18px rgba(10,168,138,0.35);
+    display:inline-block;transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .upload-btn:hover{transform:translateY(-2px);box-shadow:0 12px 22px rgba(10,168,138,0.45);}
+  .upload-sample-btn{
+    background:var(--card-soft);border:1.5px solid var(--line);border-radius:10px;padding:9px 16px;
+    font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;
+  }
+  .upload-sample-btn:hover{background:var(--line);}
+  .upload-msg{
+    flex-basis:100%;font-size:12.5px;font-weight:600;padding:8px 12px;border-radius:8px;display:none;
+  }
+  .upload-msg.show{display:block;}
+  .upload-msg.success{background:var(--good-soft);color:var(--good);}
+  .upload-msg.error{background:var(--bad-soft);color:var(--bad);}
+  .upload-msg.info{background:var(--blue-soft);color:var(--blue);}
+
+  /* ===== KPI GRID ===== */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:1.3fr repeat(5, 1fr);
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .kpi-card{
+    background:var(--card);border-radius:16px;padding:18px 20px;
+    box-shadow:0 12px 28px rgba(0,0,0,0.16);
+    position:relative;overflow:hidden;
+    border-top:4px solid var(--blue);
+    animation:riseIn .5s ease both;
+  }
+  .kpi-card .label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;}
+  .kpi-card .value{font-family:'Roboto Mono',monospace;font-size:28px;font-weight:700;color:var(--ink);line-height:1;}
+  .kpi-card .sub{font-size:12px;color:var(--muted);margin-top:8px;font-weight:500;}
+  .kpi-card .icon{position:absolute;right:14px;top:14px;font-size:20px;opacity:0.85;}
+
+  .kpi-hero{
+    grid-row:span 1;
+    display:flex;align-items:center;gap:18px;
+    border-top:4px solid var(--teal);
+  }
+  .ring-wrap{position:relative;width:88px;height:88px;flex-shrink:0;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-wrap .ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Roboto Mono',monospace;font-weight:700;font-size:18px;color:var(--teal);}
+  .hero-text .label{margin-bottom:4px;}
+  .hero-text .value{font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;}
+  .hero-text .sub{margin-top:4px;}
+
+  .c-blue{border-top-color:var(--blue);} .c-blue .icon{color:var(--blue);}
+  .c-amber{border-top-color:var(--amber);} .c-amber .icon{color:var(--amber);}
+  .c-purple{border-top-color:var(--purple);} .c-purple .icon{color:var(--purple);}
+  .c-rose{border-top-color:var(--rose);} .c-rose .icon{color:var(--rose);}
+  .c-orange{border-top-color:var(--orange);} .c-orange .icon{color:var(--orange);}
+  .c-teal{border-top-color:var(--teal);} .c-teal .icon{color:var(--teal);}
+
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  /* ===== CHARTS GRID ===== */
+  .charts-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:18px;
+    margin-bottom:24px;
+  }
+  .chart-card{
+    background:var(--card);border-radius:16px;padding:18px 20px 10px;
+    box-shadow:0 12px 28px rgba(0,0,0,0.16);
+    animation:riseIn .55s ease both;
+  }
+  .chart-card.wide{grid-column:span 2;}
+  .chart-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+  .chart-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;color:var(--ink);}
+  .chart-spec{font-size:11.5px;color:var(--muted);font-weight:500;max-width:520px;}
+  .chart-badge{
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;
+  }
+  .badge-good{background:var(--good-soft);color:var(--good);}
+  .canvas-box{position:relative;height:230px;margin-top:6px;}
+  .canvas-box.tall{height:250px;}
+  .empty-state{
+    display:flex;align-items:center;justify-content:center;height:230px;
+    color:var(--muted);font-size:13px;font-weight:600;flex-direction:column;gap:6px;
+  }
+
+  /* ===== TABLE ===== */
+  .table-card{
+    background:var(--card);border-radius:16px;padding:20px 22px 22px;
+    box-shadow:0 12px 28px rgba(0,0,0,0.16);
+    animation:riseIn .6s ease both;
+  }
+  .table-card .chart-title{margin-bottom:12px;}
+  .table-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--line);}
+  table{border-collapse:collapse;width:100%;min-width:920px;font-size:12.5px;}
+  thead th{
+    background:var(--bg-deep);color:#fff;text-align:left;
+    padding:10px 12px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;
+    position:sticky;top:0;white-space:nowrap;
+  }
+  thead th:first-child{border-top-left-radius:0;}
+  tbody td{padding:9px 12px;border-bottom:1px solid var(--line);color:var(--ink);white-space:nowrap;}
+  tbody tr:nth-child(even){background:var(--card-soft);}
+  tbody tr:hover{background:var(--teal-soft);}
+  .test-name{font-weight:700;color:var(--ink);}
+  .test-spec{color:var(--muted);font-weight:500;max-width:260px;white-space:normal;font-size:11.5px;}
+  .cell-pill{
+    display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-weight:700;font-size:11.5px;
+    font-family:'Roboto Mono',monospace;
+  }
+  .pill-good{background:var(--good-soft);color:var(--good);}
+  .pill-bad{background:var(--bad-soft);color:var(--bad);}
+  .pill-pending{background:var(--pending-soft);color:var(--pending);}
+
+  footer{text-align:center;color:rgba(255,255,255,0.65);font-size:12px;margin-top:26px;font-weight:500;}
+
+  @media (max-width:1100px){
+    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+    .kpi-hero{grid-column:span 3;}
+    .charts-grid{grid-template-columns:1fr;}
+    .chart-card.wide{grid-column:span 1;}
+  }
+  @media (max-width:640px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .kpi-hero{grid-column:span 2;}
+    .reset-btn{margin-left:0;width:100%;justify-content:center;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">OP</div>
+      <div>
+        <h1>Stability Study — Analytical Dashboard</h1>
+        <p>OPSONIN PHARMA LIMITED · Rupatali, Barishal</p>
+      </div>
+    </div>
+    <div class="meta-strip">
+      <div class="meta-item"><span class="k">Product / Batch</span><span class="v" id="metaProduct">Visral 50 mg Tablet · TLE145</span></div>
+      <div class="meta-item"><span class="k">Protocol Ref.</span><span class="v" id="metaProtocol">STB/024/05/23</span></div>
+      <div class="meta-item"><span class="k">Storage Condition</span><span class="v" id="metaStorage">30°C ± 2°C / 65% ± 5% RH</span></div>
+      <div class="meta-item"><span class="k">Study Type</span><span class="v" id="metaStudyType">Long Term</span></div>
+    </div>
+  </header>
+
+  <!-- UPLOAD BAR -->
+  <section class="uploadbar">
+    <div class="upload-left">
+      <div class="upload-icon">⇪</div>
+      <div>
+        <div class="upload-title">Data Source</div>
+        <div class="upload-status" id="uploadStatus">Sample data · Batch TLE145 (bundled reference dataset)</div>
+      </div>
+    </div>
+    <div class="upload-right">
+      <label class="upload-btn" for="fileInput">Upload Updated Excel</label>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+      <button class="upload-sample-btn" id="loadSampleBtn" type="button">Use Sample Data</button>
+    </div>
+    <div class="upload-msg" id="uploadMsg"></div>
+  </section>
+
+  <!-- FILTER BAR -->
+  <div class="filterbar">
+    <div class="filter-group">
+      <label for="productFilter">Product Name</label>
+      <select id="productFilter" class="native-select"></select>
+    </div>
+
+    <div class="filter-group ms-wrap" id="paramWrap">
+      <label>Test Parameter</label>
+      <button class="ms-btn" id="paramBtn" type="button">All parameters (7)</button>
+      <div class="ms-panel" id="paramPanel"></div>
+    </div>
+
+    <div class="filter-group ms-wrap" id="monthWrap">
+      <label>Testing Timepoint</label>
+      <button class="ms-btn" id="monthBtn" type="button">All timepoints (9)</button>
+      <div class="ms-panel" id="monthPanel"></div>
+    </div>
+
+    <span class="result-count" id="resultCount"></span>
+
+    <button class="reset-btn" id="resetBtn" type="button">⟲ Reset Filters</button>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- CHARTS -->
+  <div class="charts-grid" id="chartsGrid">
+    <div class="chart-card" id="card-avgWeight">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Average Weight Trend</div>
+          <div class="chart-spec" id="spec-avgWeight"></div>
+        </div>
+        <span class="chart-badge badge-good" id="badge-avgWeight">In Spec</span>
+      </div>
+      <div class="canvas-box"><canvas id="chart-avgWeight-canvas"></canvas></div>
+    </div>
+
+    <div class="chart-card" id="card-disintegration">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Disintegration Time Trend</div>
+          <div class="chart-spec" id="spec-disintegration"></div>
+        </div>
+        <span class="chart-badge badge-good" id="badge-disintegration">In Spec</span>
+      </div>
+      <div class="canvas-box"><canvas id="chart-disintegration-canvas"></canvas></div>
+    </div>
+
+    <div class="chart-card" id="card-dissolution">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Dissolution % Trend</div>
+          <div class="chart-spec" id="spec-dissolution"></div>
+        </div>
+        <span class="chart-badge badge-good" id="badge-dissolution">In Spec</span>
+      </div>
+      <div class="canvas-box"><canvas id="chart-dissolution-canvas"></canvas></div>
+    </div>
+
+    <div class="chart-card" id="card-assay">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Assay — Active Content %</div>
+          <div class="chart-spec" id="spec-assay"></div>
+        </div>
+        <span class="chart-badge badge-good" id="badge-assay">In Spec</span>
+      </div>
+      <div class="canvas-box"><canvas id="chart-assay-canvas"></canvas></div>
+    </div>
+
+    <div class="chart-card" id="card-uniformity">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Uniformity of Weight (±%)</div>
+          <div class="chart-spec" id="spec-uniformity"></div>
+        </div>
+        <span class="chart-badge badge-good" id="badge-uniformity">In Spec</span>
+      </div>
+      <div class="canvas-box"><canvas id="chart-uniformity-canvas"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">Overall Result Composition</div>
+          <div class="chart-spec">Share of Complies / Pending readings across selected parameters &amp; timepoints</div>
+        </div>
+      </div>
+      <div class="canvas-box"><canvas id="chart-composition-canvas"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+    <div class="chart-title">Detailed Test Results</div>
+    <div class="table-scroll">
+      <table id="dataTable">
+        <thead><tr id="tableHeadRow"></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Stability data digitized from "STABILITY STUDY- ANALYTICAL REPORT SHEET" · Batch TLE145 · Dashboard generated for internal QA/QC review</footer>
+</div>
+
+<script>
+/* ============ DATA MODEL ============ */
+/* PRODUCT / META / TIMEPOINTS / PARAMS / PARAM_ORDER are `let` (not `const`) because
+   uploading a refreshed workbook replaces them wholesale via applyDataset().
+   Everything downstream (KPIs, charts, table, filters) reads these live, so the
+   reporting layer itself never has to change — only the data feeding it. */
+let PRODUCT = {
+  name:"Visral 50 mg Tablet",
+  generic:"Tiemonium Methylsulphate INN",
+  batch:"TLE145",
+  batchSize:"180 Kg",
+  mfgDate:"May'23",
+  expDate:"May'25",
+  storageDate:"22 May'23",
+  packaging:"Alu-PVC blister pack",
+  shelfLife:"N/A (under evaluation)"
+};
+
+let META = {
+  protocol:"STB/024/05/23",
+  storage:"30°C ± 2°C / 65% ± 5% RH",
+  studyType:"Long Term"
+};
+
+let TIMEPOINTS = ["Initial","3M","6M","9M","12M","18M","24M","36M","48M"];
+
+let PARAMS = {
+  description:{
+    key:"description", name:"Description", type:"qualitative",
+    spec:"White/almost white, round, biconvex film-coated tablet",
+    values:["Complies","Complies","Complies","Complies","Complies","Complies","Complies","Complies","Complies"]
+  },
+  identification:{
+    key:"identification", name:"Identification", type:"qualitative",
+    spec:"Retention time matches standard preparation",
+    values:["Complies","Complies","Complies","Complies","Complies","Complies","Complies","Complies","Complies"]
+  },
+  avgWeight:{
+    key:"avgWeight", name:"Average Weight", type:"numeric", unit:"mg",
+    specMin:158.0, specMax:170.0,
+    spec:"158.0 mg – 170.0 mg",
+    values:[163.3,164.5,162.1,165.64,165.3,165.89,164.98,163.62,null],
+    color:"#2f6fed"
+  },
+  uniformity:{
+    key:"uniformity", name:"Uniformity of Weight", type:"dual", unit:"%",
+    specLimit:7.5,
+    spec:"Max 2 tablets may deviate ±7.5%; none beyond ±15%",
+    plus:[4.10,3.34,3.64,6.68,1.63,1.87,2.50,2.19,null],
+    minus:[3.25,3.95,2.53,3.22,2.0,1.26,2.78,2.64,null],
+    color:"#8b5cf6"
+  },
+  disintegration:{
+    key:"disintegration", name:"Disintegration Time", type:"numeric", unit:"min",
+    specMax:30,
+    spec:"Not more than 30 minutes",
+    values:[13,11,10,10,9,9,13,14,null],
+    color:"#fb7c3c"
+  },
+  dissolution:{
+    key:"dissolution", name:"Dissolution", type:"numeric", unit:"%",
+    specMin:80,
+    spec:"Not less than 80.0% dissolved in 30 minutes",
+    values:[98.7,100.8,102.5,102.4,100.4,98.1,103.5,92.5,null],
+    color:"#0aa88a"
+  },
+  assay:{
+    key:"assay", name:"Assay (Active Content)", type:"numeric", unit:"%",
+    specMin:95, specMax:107, officialMin:90, officialMax:110,
+    spec:"Release: 95.0–107.0% · Official: 90.0–110.0% of labeled amount",
+    values:[97.4,96.61,95.83,97.44,97.13,97.71,99.51,96.59,null],
+    mg:[48.70,48.31,47.92,48.72,48.57,48.85,49.75,48.30,null],
+    color:"#f4436c"
+  }
+};
+let PARAM_ORDER = ["description","identification","avgWeight","uniformity","disintegration","dissolution","assay"];
+
+/* Snapshot of the bundled sample dataset, used by "Use Sample Data" to revert an upload. */
+const clone = (o)=>JSON.parse(JSON.stringify(o));
+const DEFAULT_PRODUCT = clone(PRODUCT);
+const DEFAULT_META = clone(META);
+const DEFAULT_TIMEPOINTS = clone(TIMEPOINTS);
+const DEFAULT_PARAMS = clone(PARAMS);
+const DEFAULT_PARAM_ORDER = clone(PARAM_ORDER);
+
+/* ============ STATE ============ */
+const state = {
+  product:"all",
+  params:new Set(PARAM_ORDER),
+  months:new Set(TIMEPOINTS.map((_,i)=>i))
+};
+
+const charts = {};
+
+/* ============ HELPERS ============ */
+function monthIndices(){ return TIMEPOINTS.map((_,i)=>i).filter(i=>state.months.has(i)); }
+function isCompliant(paramKey, idx){
+  const p = PARAMS[paramKey];
+  if(p.type==="qualitative") return p.values[idx]==="Complies";
+  if(p.type==="numeric"){
+    const v = p.values[idx];
+    if(v===null||v===undefined) return null;
+    if(p.specMin!==undefined && v<p.specMin) return false;
+    if(p.specMax!==undefined && v>p.specMax) return false;
+    return true;
+  }
+  if(p.type==="dual"){
+    const pl=p.plus[idx], mi=p.minus[idx];
+    if(pl===null||pl===undefined) return null;
+    return Math.abs(pl)<=p.specLimit && Math.abs(mi)<=p.specLimit;
+  }
+  return null;
+}
+
+/* ============ FILTER UI BUILD ============ */
+function buildProductFilter(){
+  // Only refreshes the <option> list — the change listener is wired once in wireStaticUI()
+  // so re-loading a dataset never stacks duplicate handlers on this persistent <select>.
+  const sel = document.getElementById('productFilter');
+  sel.innerHTML = `<option value="all">${PRODUCT.name} (Batch ${PRODUCT.batch})</option>`;
+  sel.value = 'all';
+}
+
+function buildMultiSelect(panelId, btnId, items, stateSet, labelSingular){
+  const panel = document.getElementById(panelId);
+  panel.innerHTML = items.map(it=>{
+    const swatch = it.color ? `<span class="swatch" style="background:${it.color}"></span>` : '';
+    return `<label class="ms-row"><input type="checkbox" data-val="${it.value}" ${stateSet.has(it.value)?'checked':''}>${swatch}<span>${it.label}</span></label>`;
+  }).join('') + `<div class="ms-actions"><button type="button" data-act="all">Select all</button><button type="button" data-act="none">Clear all</button></div>`;
+
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      const val = cb.dataset.val;
+      const parsedVal = isNaN(Number(val)) ? val : Number(val);
+      if(cb.checked) stateSet.add(parsedVal); else stateSet.delete(parsedVal);
+      updateMsButtonLabel(btnId, stateSet, items.length, labelSingular);
+      renderAll();
+    });
+  });
+  panel.querySelector('[data-act="all"]').addEventListener('click', ()=>{
+    items.forEach(it=>stateSet.add(it.value));
+    panel.querySelectorAll('input').forEach(cb=>cb.checked=true);
+    updateMsButtonLabel(btnId, stateSet, items.length, labelSingular);
+    renderAll();
+  });
+  panel.querySelector('[data-act="none"]').addEventListener('click', ()=>{
+    stateSet.clear();
+    panel.querySelectorAll('input').forEach(cb=>cb.checked=false);
+    updateMsButtonLabel(btnId, stateSet, items.length, labelSingular);
+    renderAll();
+  });
+}
+
+function updateMsButtonLabel(btnId, stateSet, total, labelSingular){
+  const btn = document.getElementById(btnId);
+  if(stateSet.size===total) btn.textContent = `All ${labelSingular}s (${total})`;
+  else if(stateSet.size===0) btn.textContent = `No ${labelSingular}s selected`;
+  else btn.textContent = `${stateSet.size} of ${total} ${labelSingular}s`;
+}
+
+function setupDropdownToggle(wrapId, btnId, panelId){
+  const btn = document.getElementById(btnId);
+  const panel = document.getElementById(panelId);
+  btn.addEventListener('click', e=>{
+    e.stopPropagation();
+    document.querySelectorAll('.ms-panel.open').forEach(p=>{ if(p!==panel) p.classList.remove('open'); });
+    panel.classList.toggle('open');
+  });
+  document.addEventListener('click', e=>{
+    if(!document.getElementById(wrapId).contains(e.target)) panel.classList.remove('open');
+  });
+}
+
+/* Rebuilds filter contents from whatever dataset is currently loaded.
+   Safe to call every time a new file is uploaded — panel innerHTML is fully
+   replaced, so checkbox listeners never duplicate. */
+function refreshFilterUI(){
+  buildProductFilter();
+
+  const paramItems = PARAM_ORDER.map(k=>({value:k, label:PARAMS[k].name, color:PARAMS[k].color||"#9aa5a0"}));
+  buildMultiSelect('paramPanel','paramBtn', paramItems, state.params, 'parameter');
+
+  const monthItems = TIMEPOINTS.map((m,i)=>({value:i, label:m}));
+  buildMultiSelect('monthPanel','monthBtn', monthItems, state.months, 'timepoint');
+}
+
+/* One-time wiring for controls that persist in the DOM across dataset reloads
+   (the <select>, the two dropdown buttons, Reset, Upload, Use Sample Data).
+   Called exactly once on page load. */
+function wireStaticUI(){
+  document.getElementById('productFilter').addEventListener('change', e=>{ state.product = e.target.value; renderAll(); });
+  setupDropdownToggle('paramWrap','paramBtn','paramPanel');
+  setupDropdownToggle('monthWrap','monthBtn','monthPanel');
+
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    state.product = "all";
+    state.params = new Set(PARAM_ORDER);
+    state.months = new Set(TIMEPOINTS.map((_,i)=>i));
+    document.getElementById('productFilter').value = 'all';
+    document.querySelectorAll('#paramPanel input').forEach(cb=>cb.checked=true);
+    document.querySelectorAll('#monthPanel input').forEach(cb=>cb.checked=true);
+    updateMsButtonLabel('paramBtn', state.params, PARAM_ORDER.length, 'parameter');
+    updateMsButtonLabel('monthBtn', state.months, TIMEPOINTS.length, 'timepoint');
+    renderAll();
+  });
+
+  document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+  document.getElementById('loadSampleBtn').addEventListener('click', ()=>{
+    applyDataset(clone(DEFAULT_PRODUCT), clone(DEFAULT_META), clone(DEFAULT_TIMEPOINTS), clone(DEFAULT_PARAM_ORDER), clone(DEFAULT_PARAMS));
+    showUploadMessage('info','Sample data restored.');
+    document.getElementById('uploadStatus').textContent = 'Sample data · Batch TLE145 (bundled reference dataset)';
+  });
+}
+
+/* ============ KPI RENDER ============ */
+function renderKPIs(){
+  const grid = document.getElementById('kpiGrid');
+  const idxs = monthIndices();
+  const activeParams = PARAM_ORDER.filter(k=>state.params.has(k));
+
+  // compliance tally
+  let total=0, compliant=0, pending=0;
+  activeParams.forEach(k=>{
+    idxs.forEach(i=>{
+      const c = isCompliant(k,i);
+      if(c===null){ pending++; return; }
+      total++; if(c) compliant++;
+    });
+  });
+  const rate = total>0 ? Math.round((compliant/total)*1000)/10 : 0;
+
+  const completedTimepoints = idxs.filter(i=>i<8 || activeParams.some(k=>{
+    const p=PARAMS[k];
+    if(p.type==="qualitative") return true;
+    if(p.type==="dual") return p.plus[i]!==null;
+    return p.values[i]!==null;
+  })).length;
+
+  const numericParams = activeParams.filter(k=>PARAMS[k].type!=="qualitative");
+  let latestAssay="—", latestDissolution="—";
+  if(state.params.has('assay')){
+    const av = idxs.filter(i=>PARAMS.assay.values[i]!==null);
+    if(av.length){ const li=av[av.length-1]; latestAssay = PARAMS.assay.values[li]+"% ("+TIMEPOINTS[li]+")"; }
+  }
+  if(state.params.has('dissolution')){
+    const dv = idxs.filter(i=>PARAMS.dissolution.values[i]!==null);
+    if(dv.length){ const li=dv[dv.length-1]; latestDissolution = PARAMS.dissolution.values[li]+"% ("+TIMEPOINTS[li]+")"; }
+  }
+
+  const outOfSpec = total - compliant;
+
+  grid.innerHTML = `
+    <div class="kpi-card kpi-hero">
+      <div class="ring-wrap">
+        <svg width="88" height="88" viewBox="0 0 88 88">
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#eef1f0" stroke-width="9"/>
+          <circle cx="44" cy="44" r="38" fill="none" stroke="#0aa88a" stroke-width="9"
+            stroke-dasharray="${2*Math.PI*38}" stroke-dashoffset="${2*Math.PI*38*(1-rate/100)}" stroke-linecap="round"/>
+        </svg>
+        <div class="ring-label">${rate}%</div>
+      </div>
+      <div class="hero-text">
+        <div class="label">Overall Compliance</div>
+        <div class="value">${compliant} of ${total} results in spec</div>
+        <div class="sub">${pending} reading(s) pending / not yet due</div>
+      </div>
+    </div>
+
+    <div class="kpi-card c-blue">
+      <div class="icon">🧪</div>
+      <div class="label">Test Parameters</div>
+      <div class="value">${activeParams.length}</div>
+      <div class="sub">of ${PARAM_ORDER.length} total tracked</div>
+    </div>
+
+    <div class="kpi-card c-amber">
+      <div class="icon">📅</div>
+      <div class="label">Timepoints Selected</div>
+      <div class="value">${idxs.length}</div>
+      <div class="sub">${completedTimepoints} completed with data</div>
+    </div>
+
+    <div class="kpi-card c-rose">
+      <div class="icon">⚠️</div>
+      <div class="label">Out-of-Spec Results</div>
+      <div class="value" style="color:${outOfSpec>0?'#e0374a':'#0c2b21'}">${outOfSpec}</div>
+      <div class="sub">${outOfSpec===0? "Zero deviations recorded" : "Requires QA review"}</div>
+    </div>
+
+    <div class="kpi-card c-purple">
+      <div class="icon">💊</div>
+      <div class="label">Latest Assay</div>
+      <div class="value" style="font-size:20px">${latestAssay}</div>
+      <div class="sub">Release limit 95.0–107.0%</div>
+    </div>
+
+    <div class="kpi-card c-teal">
+      <div class="icon">💧</div>
+      <div class="label">Latest Dissolution</div>
+      <div class="value" style="font-size:20px">${latestDissolution}</div>
+      <div class="sub">Spec: NLT 80.0% in 30 min</div>
+    </div>
+  `;
+}
+
+/* ============ CHART HELPERS ============ */
+function baseLineOptions(unit){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'#0c2b21', padding:10, cornerRadius:8, titleFont:{family:'Inter',weight:'700'}, bodyFont:{family:'Inter'},
+        callbacks:{ label:(ctx)=> ctx.dataset.label + ': ' + (ctx.parsed.y===null? '—' : ctx.parsed.y + (unit||'')) }
+      }
+    },
+    scales:{
+      x:{ grid:{display:false}, ticks:{font:{family:'Inter',size:11,weight:'600'}, color:'#5c716a'} },
+      y:{ grid:{color:'#eef1f0'}, ticks:{font:{family:'Inter',size:11}, color:'#5c716a'} }
+    }
+  };
+}
+
+function makeOrUpdate(id, config){
+  if(charts[id]){ charts[id].destroy(); }
+  const ctx = document.getElementById(id).getContext('2d');
+  charts[id] = new Chart(ctx, config);
+}
+
+function showEmptyOrCanvas(cardId, show){
+  const card = document.getElementById(cardId);
+  card.style.display = show ? '' : 'none';
+}
+
+/* ---- numeric trend chart with spec band ---- */
+function renderNumericTrend(key, canvasId){
+  const p = PARAMS[key];
+  const idxs = monthIndices();
+  const labels = idxs.map(i=>TIMEPOINTS[i]);
+  const data = idxs.map(i=>p.values[i]);
+
+  const datasets = [];
+  if(p.specMax!==undefined){
+    datasets.push({label:'Upper limit', data:idxs.map(()=>p.specMax), borderColor:'rgba(224,55,74,0.45)', borderDash:[5,4], pointRadius:0, borderWidth:1.5, fill:false});
+  }
+  if(p.specMin!==undefined){
+    datasets.push({label:'Lower limit', data:idxs.map(()=>p.specMin), borderColor:'rgba(224,55,74,0.45)', borderDash:[5,4], pointRadius:0, borderWidth:1.5,
+      fill: p.specMax!==undefined ? '-1' : false, backgroundColor:'rgba(18,164,84,0.08)'});
+  }
+  datasets.push({
+    label:p.name, data, borderColor:p.color, backgroundColor:p.color+'22',
+    borderWidth:3, pointRadius:5, pointHoverRadius:7, pointBackgroundColor:'#fff', pointBorderColor:p.color, pointBorderWidth:2,
+    tension:0.35, spanGaps:false, fill:false
+  });
+
+  makeOrUpdate(canvasId, {type:'line', data:{labels, datasets}, options:baseLineOptions(p.unit==='%'?'%':' '+p.unit)});
+}
+
+/* ---- uniformity dual bar ---- */
+function renderUniformity(){
+  const p = PARAMS.uniformity;
+  const idxs = monthIndices();
+  const labels = idxs.map(i=>TIMEPOINTS[i]);
+  const plus = idxs.map(i=>p.plus[i]);
+  const minus = idxs.map(i=>p.minus[i]===null? null : -Math.abs(p.minus[i]));
+
+  makeOrUpdate('chart-uniformity-canvas', {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'+ Deviation', data:plus, backgroundColor:'#8b5cf6', borderRadius:5, maxBarThickness:22},
+      {label:'- Deviation', data:minus, backgroundColor:'#c4b5fd', borderRadius:5, maxBarThickness:22},
+      {label:'+7.5% limit', data:idxs.map(()=>p.specLimit), type:'line', borderColor:'rgba(224,55,74,0.55)', borderDash:[5,4], pointRadius:0, borderWidth:1.5},
+      {label:'-7.5% limit', data:idxs.map(()=>-p.specLimit), type:'line', borderColor:'rgba(224,55,74,0.55)', borderDash:[5,4], pointRadius:0, borderWidth:1.5}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:true, position:'bottom', labels:{boxWidth:10, font:{family:'Inter',size:10.5,weight:'600'}, color:'#5c716a'}},
+        tooltip:{backgroundColor:'#0c2b21', padding:10, cornerRadius:8}},
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:'Inter',size:11,weight:'600'}, color:'#5c716a'}},
+        y:{grid:{color:'#eef1f0'}, ticks:{callback:v=>v+'%', font:{family:'Inter',size:11}, color:'#5c716a'}}
+      }
+    }
+  });
+}
+
+/* ---- composition donut ---- */
+function renderComposition(){
+  const idxs = monthIndices();
+  const activeParams = PARAM_ORDER.filter(k=>state.params.has(k));
+  let compliant=0, pending=0;
+  activeParams.forEach(k=>{
+    idxs.forEach(i=>{
+      const c = isCompliant(k,i);
+      if(c===null) pending++;
+      else if(c) compliant++;
+    });
+  });
+  makeOrUpdate('chart-composition-canvas', {
+    type:'doughnut',
+    data:{
+      labels:['Complies / In Spec','Pending / Not Yet Due'],
+      datasets:[{ data:[compliant, pending], backgroundColor:['#12a454','#e2ede8'], borderWidth:0, hoverOffset:6 }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'68%',
+      plugins:{
+        legend:{position:'bottom', labels:{boxWidth:10, font:{family:'Inter', size:11, weight:'600'}, color:'#5c716a'}},
+        tooltip:{backgroundColor:'#0c2b21', padding:10, cornerRadius:8}
+      }
+    }
+  });
+}
+
+/* ============ CHARTS RENDER ORCHESTRATOR ============ */
+function renderCharts(){
+  const map = {avgWeight:'card-avgWeight', disintegration:'card-disintegration', dissolution:'card-dissolution', assay:'card-assay', uniformity:'card-uniformity'};
+  Object.entries(map).forEach(([key,cardId])=>{
+    const active = state.params.has(key);
+    showEmptyOrCanvas(cardId, active);
+    if(!active) return;
+    document.getElementById('spec-'+key).textContent = PARAMS[key].spec;
+    if(key==='uniformity') renderUniformity();
+    else renderNumericTrend(key, 'chart-'+key+'-canvas');
+  });
+  renderComposition();
+}
+
+/* ============ TABLE RENDER ============ */
+function renderTable(){
+  const idxs = monthIndices();
+  const head = document.getElementById('tableHeadRow');
+  head.innerHTML = `<th>Sl.</th><th>Test Parameter</th><th>Specification</th>` + idxs.map(i=>`<th>${TIMEPOINTS[i]}</th>`).join('');
+
+  const body = document.getElementById('tableBody');
+  const activeParams = PARAM_ORDER.filter(k=>state.params.has(k));
+  body.innerHTML = activeParams.map((k,rowIdx)=>{
+    const p = PARAMS[k];
+    const cells = idxs.map(i=>{
+      if(p.type==='qualitative'){
+        const v = p.values[i];
+        return `<td><span class="cell-pill ${v==='Complies'?'pill-good':'pill-bad'}">${v}</span></td>`;
+      }
+      if(p.type==='dual'){
+        const pl=p.plus[i], mi=p.minus[i];
+        if(pl===null) return `<td><span class="cell-pill pill-pending">Pending</span></td>`;
+        const ok = Math.abs(pl)<=p.specLimit && Math.abs(mi)<=p.specLimit;
+        return `<td><span class="cell-pill ${ok?'pill-good':'pill-bad'}">+${pl}% / -${mi}%</span></td>`;
+      }
+      const v = p.values[i];
+      if(v===null||v===undefined) return `<td><span class="cell-pill pill-pending">Pending</span></td>`;
+      const c = isCompliant(k,i);
+      let display = v + (p.unit==='%'?'%':' '+p.unit);
+      if(k==='assay') display = p.mg[i] + ' mg (' + v + '%)';
+      return `<td><span class="cell-pill ${c?'pill-good':'pill-bad'}">${display}</span></td>`;
+    }).join('');
+    return `<tr><td>${rowIdx+1}</td><td class="test-name">${p.name}</td><td class="test-spec">${p.spec}</td>${cells}</tr>`;
+  }).join('');
+}
+
+/* ============ RESULT COUNT ============ */
+function renderResultCount(){
+  const idxs = monthIndices();
+  const activeParams = PARAM_ORDER.filter(k=>state.params.has(k));
+  document.getElementById('resultCount').textContent = `Showing ${activeParams.length} parameter(s) × ${idxs.length} timepoint(s)`;
+}
+
+/* ============ MASTER RENDER ============ */
+function renderAll(){
+  renderKPIs();
+  renderCharts();
+  renderTable();
+  renderResultCount();
+}
+
+/* ============ META / UPLOAD STATUS ============ */
+function renderMeta(){
+  document.getElementById('metaProduct').textContent = `${PRODUCT.name} · ${PRODUCT.batch}`;
+  document.getElementById('metaProtocol').textContent = META.protocol;
+  document.getElementById('metaStorage').textContent = META.storage;
+  document.getElementById('metaStudyType').textContent = META.studyType;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let uploadMsgTimer=null;
+function showUploadMessage(type, msg){
+  const el = document.getElementById('uploadMsg');
+  el.className = 'upload-msg show ' + type;
+  el.textContent = msg;
+  clearTimeout(uploadMsgTimer);
+  uploadMsgTimer = setTimeout(()=>{ el.classList.remove('show'); }, 6000);
+}
+
+/* Swaps in a fresh dataset (from an upload or from the bundled sample) and
+   rebuilds every filter + visual from it. This is the only integration point
+   between "new data" and "the dashboard" — no chart/card/table logic changes. */
+function applyDataset(product, meta, timepoints, paramOrder, params){
+  PRODUCT = product;
+  META = meta;
+  TIMEPOINTS = timepoints;
+  PARAM_ORDER = paramOrder;
+  PARAMS = params;
+
+  state.product = 'all';
+  state.params = new Set(PARAM_ORDER);
+  state.months = new Set(TIMEPOINTS.map((_,i)=>i));
+
+  refreshFilterUI();
+  renderMeta();
+  renderAll();
+}
+
+/* ============ EXCEL PARSER ============
+   Reads the same "SUMMARY SHEET" layout as the original template:
+   Test Parameter | (spacer) | Specification | Initial Result | 3 Months | 6 Months | ...
+   with Description / Identification / Average weight / Uniformity of weight /
+   Disintegration Time / Dissolution / Assay rows below the header.
+   Product metadata (Name of Product, Batch No., Mfg/Exp Date, etc.) is read from
+   the same sheet; Protocol Reference No. and Study Type are read from any of the
+   timepoint sheets (3 M, 6 M, ...), matching the original workbook structure. */
+function normalizeLabel(s){ return String(s==null?'':s).replace(/[:.\n]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+
+function sheetToRows(sheet){ return XLSX.utils.sheet_to_json(sheet, {header:1, defval:null}); }
+
+function findLabelValue(rows, labelVariants, maxRow){
+  const variants = labelVariants.map(v=>normalizeLabel(v));
+  const limit = maxRow===undefined ? rows.length : Math.min(maxRow, rows.length);
+  for(let r=0;r<limit;r++){
+    const row = rows[r]||[];
+    for(let c=0;c<row.length;c++){
+      if(variants.includes(normalizeLabel(row[c]))){
+        for(let c2=c+1;c2<row.length;c2++){
+          const v = row[c2];
+          if(v!==null && v!==undefined && String(v).trim()!==''){ return String(v).trim(); }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function findLabelValueAcrossSheets(workbook, labelVariants, excludeSheet){
+  for(const sn of workbook.SheetNames){
+    if(sn===excludeSheet) continue;
+    const rows = sheetToRows(workbook.Sheets[sn]);
+    const v = findLabelValue(rows, labelVariants);
+    if(v) return v;
+  }
+  return null;
+}
+
+function findRegexAcrossSheets(workbook, regex, excludeSheet){
+  for(const sn of workbook.SheetNames){
+    if(sn===excludeSheet) continue;
+    const rows = sheetToRows(workbook.Sheets[sn]);
+    for(const row of rows){
+      for(const cell of (row||[])){
+        if(cell==null) continue;
+        const m = String(cell).match(regex);
+        if(m) return m[1].trim();
+      }
+    }
+  }
+  return null;
+}
+
+const TEST_CATEGORIES = [
+  {key:'description', match:/descript/i, type:'qualitative', name:'Description'},
+  {key:'identification', match:/identif/i, type:'qualitative', name:'Identification'},
+  {key:'avgWeight', match:/average\s*weight/i, type:'numeric', unit:'mg', name:'Average Weight', color:'#2f6fed'},
+  {key:'uniformity', match:/uniformity/i, type:'dual', unit:'%', name:'Uniformity of Weight', color:'#8b5cf6'},
+  {key:'disintegration', match:/disintegrat/i, type:'numeric', unit:'min', name:'Disintegration Time', color:'#fb7c3c'},
+  {key:'dissolution', match:/dissolution/i, type:'numeric', unit:'%', name:'Dissolution', color:'#0aa88a'},
+  {key:'assay', match:/assay/i, type:'numeric', unit:'%', name:'Assay (Active Content)', color:'#f4436c'}
+];
+
+function cleanTimepointLabel(raw){
+  const label = String(raw).trim();
+  if(/initial/i.test(label)) return 'Initial';
+  const m = label.match(/(\d+)\s*months?/i);
+  if(m) return m[1]+'M';
+  return label.replace(/result/i,'').trim() || label;
+}
+
+function parseWorkbook(workbook){
+  const sumName = workbook.SheetNames.find(n=>n.toLowerCase().includes('summary'));
+  if(!sumName) throw new Error('No "SUMMARY SHEET" tab found in this file.');
+  const rows = sheetToRows(workbook.Sheets[sumName]);
+
+  let headerRow=-1, nameCol=-1;
+  for(let r=0;r<rows.length;r++){
+    const row = rows[r]||[];
+    const idx = row.findIndex(c=>normalizeLabel(c)==='test parameter');
+    if(idx>-1){ headerRow=r; nameCol=idx; break; }
+  }
+  if(headerRow===-1) throw new Error('Could not find the "Test Parameter" header row on the Summary Sheet.');
+  const hRow = rows[headerRow];
+  const specCol = hRow.findIndex(c=>normalizeLabel(c)==='specification');
+  if(specCol===-1) throw new Error('Could not find the "Specification" column on the Summary Sheet.');
+
+  const timeCols=[], timeLabels=[];
+  for(let c=specCol+1;c<hRow.length;c++){
+    const raw = hRow[c];
+    if(raw===null||raw===undefined||String(raw).trim()==='') continue;
+    timeCols.push(c);
+    timeLabels.push(cleanTimepointLabel(raw));
+  }
+  if(timeCols.length===0) throw new Error('No timepoint columns (Initial, 3 Months, 6 Months, ...) were found.');
+
+  const found = {};
+  for(let r=headerRow+1;r<rows.length;r++){
+    const row = rows[r]||[];
+    const nameCell = row[nameCol];
+    if(nameCell===null||nameCell===undefined) continue;
+    const nameStr = String(nameCell).replace(/\n/g,' ').trim();
+    if(nameStr==='') continue;
+    const cat = TEST_CATEGORIES.find(c=>c.match.test(nameStr));
+    if(!cat || found[cat.key]) continue;
+    const specText = String(row[specCol]==null?'':row[specCol]).replace(/\n/g,' ').replace(/\s+/g,' ').trim();
+    found[cat.key] = { cat, specText, rawVals: timeCols.map(c=>row[c]) };
+  }
+
+  const params = {};
+  const paramOrder = [];
+  TEST_CATEGORIES.forEach(cat=>{
+    const f = found[cat.key];
+    if(!f) return;
+    paramOrder.push(cat.key);
+
+    if(cat.type==='qualitative'){
+      params[cat.key] = { key:cat.key, name:cat.name, type:'qualitative', spec:f.specText,
+        values: f.rawVals.map(v=> (v===null||v===undefined||String(v).trim()==='') ? null : String(v).trim()) };
+      return;
+    }
+
+    if(cat.type==='dual'){
+      const limitMatch = f.specText.match(/±\s*([\d.]+)\s*%/);
+      const specLimit = limitMatch ? parseFloat(limitMatch[1]) : 7.5;
+      const plus=[], minus=[];
+      f.rawVals.forEach(v=>{
+        const s = v===null||v===undefined ? '' : String(v).trim();
+        if(s===''||s==='*'){ plus.push(null); minus.push(null); return; }
+        const mp = s.match(/\(\+\)\s*([\d.]+)/), mm = s.match(/\(-\)\s*([\d.]+)/);
+        plus.push(mp?parseFloat(mp[1]):null);
+        minus.push(mm?parseFloat(mm[1]):null);
+      });
+      params[cat.key] = { key:cat.key, name:cat.name, type:'dual', unit:'%', specLimit, spec:f.specText, plus, minus, color:cat.color };
+      return;
+    }
+
+    // numeric (avgWeight, disintegration, dissolution, assay)
+    let specMin, specMax, officialMin, officialMax;
+    if(cat.key==='avgWeight'){
+      const m = f.specText.match(/([\d.]+)\s*mg\s*to\s*([\d.]+)\s*mg/i);
+      if(m){ specMin=parseFloat(m[1]); specMax=parseFloat(m[2]); }
+    } else if(cat.key==='disintegration'){
+      const m = f.specText.match(/not more than\s*([\d.]+)/i);
+      if(m) specMax=parseFloat(m[1]);
+    } else if(cat.key==='dissolution'){
+      const m = f.specText.match(/not less than\s*([\d.]+)/i);
+      if(m) specMin=parseFloat(m[1]);
+    } else if(cat.key==='assay'){
+      const pcts = [...f.specText.matchAll(/\(\s*([\d.]+)\s*%\s*to\s*([\d.]+)\s*%/gi)];
+      if(pcts[0]){ specMin=parseFloat(pcts[0][1]); specMax=parseFloat(pcts[0][2]); }
+      if(pcts[1]){ officialMin=parseFloat(pcts[1][1]); officialMax=parseFloat(pcts[1][2]); }
+    }
+
+    let mgVals = cat.key==='assay' ? [] : undefined;
+    const values = f.rawVals.map(v=>{
+      const s = v===null||v===undefined ? '' : String(v).trim();
+      if(s===''||s==='*'){ if(mgVals) mgVals.push(null); return null; }
+      if(cat.key==='assay'){
+        const mgm = s.match(/([\d.]+)\s*mg/i);
+        const pctm = s.match(/([\d.]+)\s*%/);
+        mgVals.push(mgm?parseFloat(mgm[1]):null);
+        return pctm ? parseFloat(pctm[1]) : (isFinite(parseFloat(s)) ? parseFloat(s) : null);
+      }
+      const num = parseFloat(s.replace(/[^0-9.\-]/g,''));
+      if(isNaN(num)) return null;
+      if(cat.key==='dissolution' && num<=5) return Math.round(num*1000)/10; // fraction -> %
+      return num;
+    });
+
+    params[cat.key] = { key:cat.key, name:cat.name, type:'numeric', unit:cat.unit,
+      specMin, specMax, officialMin, officialMax, spec:f.specText, values, color:cat.color };
+    if(cat.key==='assay') params[cat.key].mg = mgVals;
+  });
+
+  if(paramOrder.length===0){
+    throw new Error('None of the expected test rows (Description, Identification, Average weight, Uniformity of weight, Disintegration Time, Dissolution, Assay) were recognized.');
+  }
+
+  const product = {
+    name: findLabelValue(rows, ['name of product'], headerRow) || DEFAULT_PRODUCT.name,
+    generic: findLabelValue(rows, ['generic name'], headerRow) || DEFAULT_PRODUCT.generic,
+    batch: findLabelValue(rows, ['batch no'], headerRow) || DEFAULT_PRODUCT.batch,
+    batchSize: findLabelValue(rows, ['batch size'], headerRow) || DEFAULT_PRODUCT.batchSize,
+    mfgDate: findLabelValue(rows, ['mfg date','mfg. date'], headerRow) || DEFAULT_PRODUCT.mfgDate,
+    expDate: findLabelValue(rows, ['exp date','exp. date'], headerRow) || DEFAULT_PRODUCT.expDate,
+    storageDate: findLabelValue(rows, ['storage date'], headerRow) || DEFAULT_PRODUCT.storageDate,
+    packaging: findLabelValue(rows, ['packaging'], headerRow) || DEFAULT_PRODUCT.packaging,
+    shelfLife: findLabelValue(rows, ['proposed shelf life'], headerRow) || DEFAULT_PRODUCT.shelfLife
+  };
+
+  const meta = {
+    storage: findLabelValue(rows, ['storage condition'], headerRow) || DEFAULT_META.storage,
+    protocol: findLabelValueAcrossSheets(workbook, ['protocol reference no'], sumName) || DEFAULT_META.protocol,
+    studyType: findRegexAcrossSheets(workbook, /type of stability study\s*:?\s*([a-z ]+)/i, sumName) || DEFAULT_META.studyType
+  };
+
+  return { product, meta, timepoints:timeLabels, paramOrder, params };
+}
+
+function handleFileUpload(e){
+  const file = e.target.files && e.target.files[0];
+  e.target.value = ''; // allow re-selecting the same filename later
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    try{
+      const wb = XLSX.read(new Uint8Array(evt.target.result), {type:'array'});
+      const parsed = parseWorkbook(wb);
+      applyDataset(parsed.product, parsed.meta, parsed.timepoints, parsed.paramOrder, parsed.params);
+      document.getElementById('uploadStatus').innerHTML =
+        `Loaded from <b>${escapeHtml(file.name)}</b> · ${parsed.product.name} (Batch ${escapeHtml(parsed.product.batch)}) · ${parsed.paramOrder.length} parameters × ${parsed.timepoints.length} timepoints`;
+      showUploadMessage('success', `${file.name} parsed successfully — dashboard refreshed.`);
+    }catch(err){
+      console.error(err);
+      showUploadMessage('error', `Could not read this file (${err.message}). Please confirm it uses the same "SUMMARY SHEET" layout as the original template.`);
+    }
+  };
+  reader.onerror = function(){ showUploadMessage('error','Could not read the selected file.'); };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ============ BOOTSTRAP ============ */
+wireStaticUI();
+refreshFilterUI();
+renderMeta();
+renderAll();
+</script>
+</body>
+</html>
